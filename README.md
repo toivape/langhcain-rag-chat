@@ -1,26 +1,45 @@
 # PDF Question-Answering RAG System
 
-A chatbot that answers questions from PDF documents using LangChain, ChromaDB, Ollama, and Anthropic Claude.
+A chatbot that answers questions from PDF documents using LangChain, ChromaDB, and Ollama.
 
 ## Setup
 
 ### Prerequisites
 
+**Common**
+
 - Python 3.11+
 - [uv](https://docs.astral.sh/uv/)
-- [Ollama](https://ollama.com/) running locally with the `nomic-embed-text` model
+- [Ollama](https://ollama.com/)
+
+Pull the embedding model used by both options:
+
+```bash
+ollama pull nomic-embed-text
+```
+
+Start Ollama if it isn't already running as a background service:
+
+```bash
+ollama serve
+```
+
+**Option A only** (fully local)
+
+Pull the LLM:
+
+```bash
+ollama pull qwen2.5:14b
+```
+
+**Option B only**
+
 - Anthropic API key
 
 ### Install
 
 ```bash
 uv sync
-```
-
-### API key
-
-```bash
-export ANTHROPIC_API_KEY='your-key-here'
 ```
 
 ## Usage
@@ -54,6 +73,14 @@ Optional flags:
 ---
 
 ### Option B — Gradio web UI (`src/`)
+
+#### Prerequisites
+
+Set your Anthropic API key:
+
+```bash
+export ANTHROPIC_API_KEY='your-key-here'
+```
 
 #### 1. Load a PDF
 
