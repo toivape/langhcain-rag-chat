@@ -23,11 +23,10 @@ import chromadb
 from tqdm import tqdm
 from langchain_classic.chains import create_retrieval_chain
 from langchain_classic.chains.combine_documents import create_stuff_documents_chain
-from langchain_anthropic import ChatAnthropic
 from langchain_chroma import Chroma
 from langchain_community.document_loaders import PyPDFLoader
 from langchain_core.prompts import ChatPromptTemplate
-from langchain_ollama import OllamaEmbeddings
+from langchain_ollama import ChatOllama, OllamaEmbeddings
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 DEFAULT_CHROMA_DIR = "./chroma_db"
@@ -121,8 +120,8 @@ def load_index(chroma_dir: str, collection: str, embeddings: OllamaEmbeddings) -
     )
 
 
-def make_chain(vectorstore: Chroma):
-    llm = ChatAnthropic(model="claude-haiku-4-5", temperature=0.2, max_tokens=2000)
+def make_chain(vectorstore: Chroma, ollama_url: str):
+    llm = ChatOllama(model="qwen2.5:14b", base_url=ollama_url)
     retriever = vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 5})
     return create_retrieval_chain(retriever, create_stuff_documents_chain(llm, PROMPT))
 
@@ -167,9 +166,6 @@ def interactive_loop(chain) -> None:
 
 
 def run_chat(chroma_dir: str, collection: str, ollama_url: str) -> None:
-    if "ANTHROPIC_API_KEY" not in os.environ:
-        sys.exit("Error: ANTHROPIC_API_KEY environment variable is not set.")
-
     try:
         print("Initialising embeddings...")
         embeddings = make_embeddings(ollama_url)
@@ -189,7 +185,7 @@ def run_chat(chroma_dir: str, collection: str, ollama_url: str) -> None:
         )
 
     print(f"Loaded ChromaDB collection '{collection}' from '{chroma_dir}'")
-    interactive_loop(make_chain(vectorstore))
+    interactive_loop(make_chain(vectorstore, ollama_url))
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
