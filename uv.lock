@@ -1301,6 +1301,7 @@ dependencies = [
     { name = "langchain-ollama" },
     { name = "langchain-openai" },
     { name = "pypdf" },
+    { name = "typer" },
 ]
 
 [package.dev-dependencies]
@@ -1321,6 +1322,7 @@ requires-dist = [
     { name = "langchain-ollama", specifier = ">=1.1.0" },
     { name = "langchain-openai", specifier = ">=1.2.1" },
     { name = "pypdf", specifier = ">=6.10.2" },
+    { name = "typer", specifier = ">=0.12.0" },
 ]
 
 [package.metadata.requires-dev]
