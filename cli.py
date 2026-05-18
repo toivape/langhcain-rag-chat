@@ -11,6 +11,13 @@ import sys
 from pathlib import Path
 
 import typer
+from prompt_toolkit import PromptSession
+from prompt_toolkit.history import InMemoryHistory
+from rich.console import Console
+from rich.markdown import Markdown
+from rich.panel import Panel
+
+console = Console()
 
 import chromadb
 from tqdm import tqdm
@@ -121,37 +128,42 @@ def make_chain(vectorstore: Chroma):
 
 
 def interactive_loop(chain) -> None:
-    print("\nPDF Q&A ready. Type 'quit' or 'exit' to stop.\n")
+    console.print(Panel("[bold green]PDF Q&A ready[/bold green] — type [italic]quit[/italic] or [italic]exit[/italic] to stop."))
+    session = PromptSession(history=InMemoryHistory())
+
     while True:
         try:
-            question = input("Question: ").strip()
+            question = session.prompt("\nQuestion: ").strip()
         except (EOFError, KeyboardInterrupt):
-            print("\nBye.")
+            console.print("\n[bold]Bye.[/bold]")
             break
+
         if not question:
             continue
         if question.lower() in ("quit", "exit", "q"):
-            print("Bye.")
+            console.print("[bold]Bye.[/bold]")
             break
+
         try:
             result = chain.invoke({"input": question})
         except Exception as e:
             msg = str(e)
             if "ANTHROPIC_API_KEY" in msg or "authentication" in msg.lower():
-                print("Error: ANTHROPIC_API_KEY is not set or is invalid.")
+                console.print("[bold red]Error:[/bold red] ANTHROPIC_API_KEY is not set or is invalid.")
             else:
-                print(f"Error: {e}")
+                console.print(f"[bold red]Error:[/bold red] {e}")
             continue
 
-        print(f"\n{result['answer']}")
+        console.print(Markdown(result["answer"]))
+
         pages = sorted({
             doc.metadata["page"] + 1
             for doc in result.get("context", [])
             if "page" in doc.metadata
         })
         if pages:
-            print(f"(Sources: pages {', '.join(str(p) for p in pages)})")
-        print()
+            page_list = ", ".join(str(p) for p in pages)
+            console.print(f"[dim](Sources: pages {page_list})[/dim]")
 
 
 def run_chat(chroma_dir: str, collection: str, ollama_url: str) -> None:
@@ -159,11 +171,13 @@ def run_chat(chroma_dir: str, collection: str, ollama_url: str) -> None:
         sys.exit("Error: ANTHROPIC_API_KEY environment variable is not set.")
 
     try:
+        print("Initialising embeddings...")
         embeddings = make_embeddings(ollama_url)
     except Exception as e:
         sys.exit(f"Failed to initialise Ollama embeddings: {e}")
 
     try:
+        print(f"Loading vectorstore from ChromaDB collection '{collection}'...")
         vectorstore = load_index(chroma_dir, collection, embeddings)
     except Exception as e:
         sys.exit(f"Failed to load ChromaDB collection: {e}")
