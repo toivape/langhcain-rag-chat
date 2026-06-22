@@ -62,10 +62,27 @@ uv run python cli.py chat
 
 Type your question at the prompt. Enter `quit` or `exit` to stop.
 
+#### Voice input (optional)
+
+Ask questions by speaking instead of typing (English, push-to-talk):
+
+```bash
+uv run python cli.py chat --voice
+```
+
+Press Enter to start recording, speak your question, then press Enter to stop.
+The question is transcribed locally with [faster-whisper](https://github.com/SYSTRAN/faster-whisper)
+(the `base.en` model downloads automatically on first use) and answered as text.
+Press Ctrl-C to stop. Requires a working microphone.
+
+- **macOS:** on the first voice run, allow the microphone permission prompt for your terminal.
+- **Linux:** install PortAudio first — `sudo apt install libportaudio2` (Debian/Ubuntu) — which `sounddevice` needs for microphone access.
+
 Optional flags:
 
 | Flag | Default | Description |
 |---|---|---|
+| `--voice`, `-v` | off | Ask questions by speaking (push-to-talk, English) |
 | `--chroma-dir` | `./chroma_db` | ChromaDB persist directory |
 | `--collection` | `lang_chain_qa` | ChromaDB collection name |
 | `--ollama-url` | `http://localhost:11434` | Ollama base URL |
