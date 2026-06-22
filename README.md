@@ -75,6 +75,9 @@ The question is transcribed locally with [faster-whisper](https://github.com/SYS
 (the `base.en` model downloads automatically on first use) and answered as text.
 Press Ctrl-C to stop. Requires a working microphone.
 
+- **macOS:** on the first voice run, allow the microphone permission prompt for your terminal.
+- **Linux:** install PortAudio first — `sudo apt install libportaudio2` (Debian/Ubuntu) — which `sounddevice` needs for microphone access.
+
 Optional flags:
 
 | Flag | Default | Description |
