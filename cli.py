@@ -126,13 +126,24 @@ def make_chain(vectorstore: Chroma, ollama_url: str):
     return create_retrieval_chain(retriever, create_stuff_documents_chain(llm, PROMPT))
 
 
-def interactive_loop(chain) -> None:
-    console.print(Panel("[bold green]PDF Q&A ready[/bold green] — type [italic]quit[/italic] or [italic]exit[/italic] to stop."))
-    session = PromptSession(history=InMemoryHistory())
+def interactive_loop(chain, voice: bool = False) -> None:
+    transcriber = None
+    if voice:
+        from speech import SpeechTranscriber
+        transcriber = SpeechTranscriber(console=console)
+        console.print(Panel("[bold green]PDF Q&A ready (voice)[/bold green] — press [italic]Ctrl-C[/italic] to stop."))
+    else:
+        console.print(Panel("[bold green]PDF Q&A ready[/bold green] — type [italic]quit[/italic] or [italic]exit[/italic] to stop."))
+        session = PromptSession(history=InMemoryHistory())
 
     while True:
         try:
-            question = session.prompt("\nQuestion: ").strip()
+            if voice:
+                question = transcriber.listen().strip()
+                if question:
+                    console.print(f"[bold cyan]You asked:[/bold cyan] {question}")
+            else:
+                question = session.prompt("\nQuestion: ").strip()
         except (EOFError, KeyboardInterrupt):
             console.print("\n[bold]Bye.[/bold]")
             break
@@ -165,7 +176,7 @@ def interactive_loop(chain) -> None:
             console.print(f"[dim](Sources: pages {page_list})[/dim]")
 
 
-def run_chat(chroma_dir: str, collection: str, ollama_url: str) -> None:
+def run_chat(chroma_dir: str, collection: str, ollama_url: str, voice: bool = False) -> None:
     try:
         print("Initialising embeddings...")
         embeddings = make_embeddings(ollama_url)
@@ -185,7 +196,7 @@ def run_chat(chroma_dir: str, collection: str, ollama_url: str) -> None:
         )
 
     print(f"Loaded ChromaDB collection '{collection}' from '{chroma_dir}'")
-    interactive_loop(make_chain(vectorstore, ollama_url))
+    interactive_loop(make_chain(vectorstore, ollama_url), voice=voice)
 
 
 # ── CLI ───────────────────────────────────────────────────────────────────────
@@ -209,9 +220,10 @@ def chat(
     ollama_url: str = typer.Option(DEFAULT_OLLAMA_URL, help="Ollama base URL"),
     chroma_dir: str = typer.Option(DEFAULT_CHROMA_DIR, help="ChromaDB persist directory"),
     collection: str = typer.Option(DEFAULT_COLLECTION, help="ChromaDB collection name"),
+    voice: bool = typer.Option(False, "--voice", "-v", help="Ask questions by speaking (push-to-talk)"),
 ):
     """Interactive Q&A against an existing ChromaDB collection."""
-    run_chat(chroma_dir, collection, ollama_url)
+    run_chat(chroma_dir, collection, ollama_url, voice=voice)
 
 
 if __name__ == "__main__":
