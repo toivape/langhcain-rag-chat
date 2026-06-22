@@ -19,6 +19,7 @@ dependencies = [
     "prompt-toolkit>=3.0.0",
     "faster-whisper>=1.0.0",
     "sounddevice>=0.4.6",
+    "numpy>=1.26",
 ]
 
 [dependency-groups]

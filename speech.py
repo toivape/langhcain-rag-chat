@@ -1,7 +1,8 @@
 """
 Push-to-talk speech input, transcribed locally with faster-whisper.
 
-Offline and English-only, matching the project's local-Ollama setup.
+Local and English-only, matching the project's local-Ollama setup. The model
+is downloaded once on first use, then runs offline.
 """
 
 import sys
@@ -38,6 +39,8 @@ class SpeechTranscriber:
         frames = []
 
         def callback(indata, frame_count, time_info, status):
+            if status:
+                print(f"[audio] {status}", file=sys.stderr)
             frames.append(indata.copy())
 
         with self._sd.InputStream(
